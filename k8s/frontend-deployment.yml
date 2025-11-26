@@ -4,7 +4,7 @@ metadata:
   name: ems-frontend
   namespace: ems
 spec:
-  type: LoadBalancer          # or NodePort if your cluster doesn't support LB
+  type: LoadBalancer          # use NodePort if LoadBalancer not supported
   selector:
     app: ems-frontend
   ports:
@@ -28,8 +28,8 @@ spec:
     spec:
       containers:
         - name: ems-frontend
-          image: your-docker-id/ems-frontend:latest   # placeholder
-           imagePullPolicy: Always
+          image: srivenkat31666/ems-frontend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           env:
