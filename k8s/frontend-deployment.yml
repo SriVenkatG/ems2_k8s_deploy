@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ems-frontend
+  namespace: ems
+spec:
+  type: LoadBalancer          # or NodePort if your cluster doesn't support LB
+  selector:
+    app: ems-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ems-frontend
+  namespace: ems
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ems-frontend
+  template:
+    metadata:
+      labels:
+        app: ems-frontend
+    spec:
+      containers:
+        - name: ems-frontend
+          image: your-docker-id/ems-frontend:latest   # placeholder
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_API_BASE
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: VITE_API_BASE
+            - name: VITE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: VITE_API_URL
+            - name: VITE_STRIPE_PUBLISHABLE_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: VITE_STRIPE_PUBLISHABLE_KEY

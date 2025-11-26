@@ -1,0 +1,59 @@
+
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: ems_db
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./ems-backend
+      dockerfile: Dockerfile.backend
+    container_name: ems_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/${MYSQL_DATABASE}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-${MYSQL_ROOT_PASSWORD}}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      SERVER_PORT: ${BACKEND_PORT:-8081}
+    ports:
+      - "${BACKEND_PORT:-8081}:8081"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./ems-frontend
+      dockerfile: Dockerfile.frontend
+    container_name: ems_frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      VITE_API_URL: "http://backend:${BACKEND_PORT:-8081}/api"
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

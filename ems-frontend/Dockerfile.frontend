@@ -1,0 +1,20 @@
+# Build stage (Node + Vite)
+FROM node:18 AS build
+WORKDIR /app
+
+# Copy package files, install and build
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# Runtime stage - small Node image with 'serve' to host built files
+FROM node:18-alpine
+WORKDIR /app
+RUN npm i -g serve
+
+COPY --from=build /app/dist /app/dist
+
+EXPOSE 80
+CMD ["serve", "-s", "dist", "-l", "80"]

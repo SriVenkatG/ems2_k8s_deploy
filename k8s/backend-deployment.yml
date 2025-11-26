@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ems-backend
+  namespace: ems
+spec:
+  selector:
+    app: ems-backend
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ems-backend
+  namespace: ems
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ems-backend
+  template:
+    metadata:
+      labels:
+        app: ems-backend
+    spec:
+      containers:
+        - name: ems-backend
+          image: your-docker-id/ems-backend:latest   # placeholder, Jenkins will replace
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: BACKEND_PORT
+
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://ems-mysql:3306/eventdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ems-secrets
+                  key: MYSQL_ROOT_PASSWORD
+
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: SPRING_JPA_HIBERNATE_DDL_AUTO
+
+            - name: APP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ems-secrets
+                  key: APP_JWT_SECRET
+            - name: APP_JWT_EXPIRATION_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: APP_JWT_EXPIRATION_MS
+
+            - name: SPRING_MAIL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: SPRING_MAIL_HOST
+            - name: SPRING_MAIL_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: SPRING_MAIL_PORT
+            - name: SPRING_MAIL_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: SPRING_MAIL_USERNAME
+            - name: SPRING_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ems-secrets
+                  key: SPRING_MAIL_PASSWORD

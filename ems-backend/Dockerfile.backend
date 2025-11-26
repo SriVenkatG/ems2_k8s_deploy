@@ -1,0 +1,33 @@
+# ems-backend/Dockerfile.backend
+#################################
+# Build stage (Maven)
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+WORKDIR /app
+
+# Copy only pom + (optional mvnw if you keep it) for caching
+COPY pom.xml mvnw ./
+
+# Do NOT COPY .mvn here unless the directory actually exists in repo.
+# If you add the Maven wrapper (.mvn + mvnw) to the repo later, then you can re-add:
+# COPY .mvn .mvn
+
+# Copy source & build
+COPY src src
+RUN mvn -B -DskipTests package
+
+#################################
+# Runtime stage (JRE)
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+
+# Copy jar from build stage
+COPY --from=build /app/target/*.jar /app/app.jar
+
+# Copy wait script (make sure file exists at ems-backend/wait-for-it.sh)
+COPY wait-for-it.sh /usr/local/bin/wait-for-it.sh
+RUN chmod +x /usr/local/bin/wait-for-it.sh
+
+EXPOSE 8081
+
+# Wait for MySQL (service name 'db' on port 3306) then run the Spring Boot jar
+ENTRYPOINT ["/usr/local/bin/wait-for-it.sh", "db:3306", "--", "java", "-jar", "/app/app.jar"]

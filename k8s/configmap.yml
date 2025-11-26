@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ems-config
+  namespace: ems
+data:
+  MYSQL_DATABASE: "eventdb"
+
+  BACKEND_PORT: "8081"
+  FRONTEND_PORT: "80"
+
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+
+  APP_JWT_EXPIRATION_MS: "86400000"
+
+  SPRING_MAIL_HOST: "smtp.gmail.com"
+  SPRING_MAIL_PORT: "587"
+  SPRING_MAIL_USERNAME: "you@example.com"
+
+  VITE_API_BASE: "http://ems-backend:8081/api"
+  VITE_API_URL: "http://ems-backend:8081/api"
+
+  VITE_STRIPE_PUBLISHABLE_KEY: "pk_test_XXXXXXXXXXXXXXXXXXXXXXXX"

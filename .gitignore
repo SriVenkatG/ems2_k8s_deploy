@@ -1,0 +1,56 @@
+# ========================
+# Global ignores
+# ========================
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editors
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.factorypath
+.settings/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ========================
+# Backend (Spring Boot)
+# ========================
+ems-backend/target/
+ems-backend/.mvn/wrapper/maven-wrapper.jar
+ems-backend/.mvn/wrapper/maven-wrapper.properties
+ems-backend/.mvn/wrapper/maven-wrapper-downloader.jar
+
+# Build artifacts
+ems-backend/*.jar
+ems-backend/*.war
+
+# ========================
+# Frontend (React/Vite)
+# ========================
+ems-frontend/node_modules/
+ems-frontend/dist/
+ems-frontend/.env.local
+ems-frontend/.env.production
+
+# Lock files (optional to ignore, keep if needed for exact deps)
+# ems-frontend/package-lock.json
+# ems-frontend/yarn.lock
+
+# ========================
+# Docker
+# ========================
+db_data/
+*.pid

@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ems-mysql
+  namespace: ems
+spec:
+  selector:
+    app: ems-mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ems-mysql
+  namespace: ems
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ems-mysql
+  template:
+    metadata:
+      labels:
+        app: ems-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: ems-config
+                  key: MYSQL_DATABASE
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ems-secrets
+                  key: MYSQL_ROOT_PASSWORD
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-data
+          emptyDir: {}
