@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_REPO = "srivenkat31666"          // <--- change to your Docker Hub username
+        DOCKERHUB_REPO = "srivenkat31666"      // your Docker Hub username
         K8S_NAMESPACE  = "ems"
 
-        // We will always use :latest tag to avoid sed on Windows
+        // Always use :latest tag
         IMAGE_BACKEND  = "${DOCKERHUB_REPO}/ems-backend:latest"
         IMAGE_FRONTEND = "${DOCKERHUB_REPO}/ems-frontend:latest"
     }
@@ -43,9 +43,9 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 withCredentials([
-                    file(credentialsId: 'kubeconfig-ems', variable: 'KUBECONFIG_FILE'),
-                    string(credentialsId: 'EMS_DB_PASSWORD',  variable: 'EMS_DB_PASSWORD'),
-                    string(credentialsId: 'EMS_JWT_SECRET',   variable: 'EMS_JWT_SECRET'),
+                    file(credentialsId: 'kubeconfig-ems',    variable: 'KUBECONFIG_FILE'),
+                    string(credentialsId: 'EMS_DB_PASSWORD', variable: 'EMS_DB_PASSWORD'),
+                    string(credentialsId: 'EMS_JWT_SECRET',  variable: 'EMS_JWT_SECRET'),
                     usernamePassword(
                         credentialsId: 'EMS_MAIL_CREDS',
                         usernameVariable: 'EMS_MAIL_USER',
@@ -61,11 +61,11 @@ pipeline {
 
                     REM recreate ems-secrets from Jenkins credentials
                     kubectl -n %K8S_NAMESPACE% delete secret ems-secrets --ignore-not-found
+
                     kubectl -n %K8S_NAMESPACE% create secret generic ems-secrets ^
                       --from-literal=MYSQL_ROOT_PASSWORD=%EMS_DB_PASSWORD% ^
                       --from-literal=APP_JWT_SECRET=%EMS_JWT_SECRET% ^
-                      --from-literal=SPRING_MAIL_PASSWORD=%EMS_MAIL_PASS% ^
-                      --dry-run=client -o yaml | kubectl apply -f -
+                      --from-literal=SPRING_MAIL_PASSWORD=%EMS_MAIL_PASS%
 
                     REM apply manifests
                     kubectl -n %K8S_NAMESPACE% apply -f "%WORKSPACE%\\k8s\\configmap.yml"
