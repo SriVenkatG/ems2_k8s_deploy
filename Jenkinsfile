@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_REPO = "your-docker-id"   // <<< change this to your DockerHub username
+        DOCKERHUB_REPO = "srivenkat31666"   // <<< change this to your DockerHub username
         K8S_NAMESPACE  = "ems"
     }
 
@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/SriVenkatG/ems2_deploy.git'
+                    url: 'https://github.com/SriVenkatG/ems2_k8s_deploy.git'
             }
         }
 
