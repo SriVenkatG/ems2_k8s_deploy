@@ -29,6 +29,7 @@ spec:
       containers:
         - name: ems-frontend
           image: your-docker-id/ems-frontend:latest   # placeholder
+           imagePullPolicy: Always
           ports:
             - containerPort: 80
           env:
