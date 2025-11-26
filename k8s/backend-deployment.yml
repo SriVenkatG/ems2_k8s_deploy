@@ -27,8 +27,8 @@ spec:
     spec:
       containers:
         - name: ems-backend
-          image: your-docker-id/ems-backend:latest   # placeholder, Jenkins will replace
-           imagePullPolicy: Always
+          image: srivenkat31666/ems-backend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8081
           env:
