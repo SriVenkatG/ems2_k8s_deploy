@@ -15,7 +15,7 @@ data:
 
   SPRING_MAIL_HOST: "smtp.gmail.com"
   SPRING_MAIL_PORT: "587"
-  SPRING_MAIL_USERNAME: "you@example.com"  # change if needed
+  SPRING_MAIL_USERNAME: "srivenkat1357@gmail.com"  # change if needed
 
   VITE_API_BASE: "http://ems-backend:8081/api"
   VITE_API_URL: "http://ems-backend:8081/api"
