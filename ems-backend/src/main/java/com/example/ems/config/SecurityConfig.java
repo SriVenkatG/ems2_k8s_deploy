@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -37,70 +36,75 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           CorsConfigurationSource corsConfigurationSource) throws Exception {
+
         http
-            // enable CORS using the bean below
-            .cors(Customizer.withDefaults())
+            // CORS with our custom configuration
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
+
+            // No CSRF (we are using JWT, stateless)
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(sm ->
-                sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+
+            // Stateless session
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
             .authorizeHttpRequests(auth -> auth
-                // allow all CORS preflight requests
+                // Allow all preflight (OPTIONS) requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // auth endpoints
+                // Auth endpoints (login / register)
                 .requestMatchers("/api/auth/**").permitAll()
 
-                // public GET endpoints
+                // Public GET endpoints
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
 
-                // dev endpoints
+                // Dev-only endpoints
                 .requestMatchers("/dev/**").permitAll()
 
-                // swagger / docs
+                // Swagger / OpenAPI
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
-                // organizer-only
-                .requestMatchers("/api/organizer/**")
-                    .hasAnyRole("ORGANIZER", "ADMIN")
+                // Organizer-only endpoints
+                .requestMatchers("/api/organizer/**").hasAnyRole("ORGANIZER", "ADMIN")
 
-                // everything else requires auth
+                // Everything else needs authentication
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthenticationFilter,
-                             UsernamePasswordAuthenticationFilter.class);
+
+            // JWT filter before username/password filter
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
 
-        // FRONTEND ORIGINS
-        cfg.setAllowedOriginPatterns(
-                List.of("http://localhost:30310", "http://localhost:5173"));
-        // methods
-        cfg.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        // headers
+        // Allow your frontend origins
+        cfg.setAllowedOrigins(
+                List.of(
+                        "http://localhost:30310",   // frontend via kubectl port-forward
+                        "http://localhost:5173"     // Vite dev (if you use it)
+                )
+        );
+        // If setAllowedOrigins causes warnings, you can instead use:
+        // cfg.setAllowedOriginPatterns(List.of("http://localhost:30310", "http://localhost:5173"));
+
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         cfg.setAllowedHeaders(List.of("*"));
-        // what headers browser may see
-        cfg.setExposedHeaders(List.of("Authorization", "Content-Type"));
-        // allow cookies / auth headers
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
         return source;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean
