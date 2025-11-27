@@ -1,4 +1,4 @@
-package com.example.ems.config;
+package com.example.ems.config;  // <- keep this as in your project
 
 import java.util.List;
 
@@ -40,20 +40,20 @@ public class SecurityConfig {
                                            CorsConfigurationSource corsConfigurationSource) throws Exception {
 
         http
-            // CORS with our custom configuration
+            // Use our CORS configuration
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
-            // No CSRF (we are using JWT, stateless)
+            // Disable CSRF (we use JWT, stateless)
             .csrf(csrf -> csrf.disable())
 
-            // Stateless session
+            // Stateless sessions
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
             .authorizeHttpRequests(auth -> auth
                 // Allow all preflight (OPTIONS) requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Auth endpoints (login / register)
+                // Auth endpoints (login/register)
                 .requestMatchers("/api/auth/**").permitAll()
 
                 // Public GET endpoints
@@ -68,11 +68,11 @@ public class SecurityConfig {
                 // Organizer-only endpoints
                 .requestMatchers("/api/organizer/**").hasAnyRole("ORGANIZER", "ADMIN")
 
-                // Everything else needs authentication
+                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
 
-            // JWT filter before username/password filter
+            // Add JWT filter before the default UsernamePasswordAuthenticationFilter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -83,19 +83,23 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Global CORS configuration
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
 
-        // Allow your frontend origins
+        // IMPORTANT: include the actual origins you use
         cfg.setAllowedOrigins(
                 List.of(
-                        "http://localhost:30310",   // frontend via kubectl port-forward
-                        "http://localhost:5173"     // Vite dev (if you use it)
+                        "http://localhost",        // frontend via LoadBalancer (port 80)
+                        "http://localhost:30310",  // old frontend port-forward (optional)
+                        "http://localhost:5173"    // Vite dev server (optional)
                 )
         );
-        // If setAllowedOrigins causes warnings, you can instead use:
-        // cfg.setAllowedOriginPatterns(List.of("http://localhost:30310", "http://localhost:5173"));
+        // If Spring warns about setAllowedOrigins, you can use:
+        // cfg.setAllowedOriginPatterns(List.of("http://localhost*", "http://localhost:5173"));
 
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         cfg.setAllowedHeaders(List.of("*"));
